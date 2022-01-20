@@ -5,18 +5,13 @@
                 <form action="javascript:void(0)" id="updateForm" name="InterestForm" class="form-horizontal" method="POST" enctype="multipart/form-data">
                     
                         @csrf
+
                         <input type="hidden" value="{{$user['id']}}" name="id">
                         <div class="row mb-3">
                             <label for="name" class="col-md-4 col-form-label text-md-end">First Name</label>
 
                             <div class="col-md-6">
                                 <input id="efirst_name" type="text" class="form-control @error('first_name') is-invalid @enderror" name="first_name" value="{{$user['first_name']}}"  autocomplete="first_name" autofocus>
-
-                                @error('first_name')
-                                    <span class="invalid-feedback" role="alert">
-                                        <strong>{{ $message }}</strong>
-                                    </span>
-                                @enderror
                             </div>
                         </div>
 
@@ -25,12 +20,6 @@
 
                             <div class="col-md-6">
                                 <input id="elast_name" type="text" class="form-control @error('last_name') is-invalid @enderror" name="last_name" value="{{$user['last_name']}}"  autocomplete="last_name" autofocus>
-
-                                @error('last_name')
-                                    <span class="invalid-feedback" role="alert">
-                                        <strong>{{ $message }}</strong>
-                                    </span>
-                                @enderror
                             </div>
                         </div>
 
@@ -40,45 +29,41 @@
                             <div class="col-md-6">
                                 <input id="eemail" type="email" class="form-control @error('email') is-invalid @enderror" name="email" value="{{ $user['email'] }}"  autocomplete="email">
 
-                                @error('email')
-                                    <span class="invalid-feedback" role="alert">
-                                        <strong>{{ $message }}</strong>
-                                    </span>
-                                @enderror
                             </div>
                         </div>
 
                         
                         <div class="row mb-3">
-                            <label class="col-md-4 col-form-label text-md-end">Select Hobbies</label>
+                            <label for="password-confirm" class="col-md-4 col-form-label text-md-end">Select Type</label>
 
                             <div class="col-md-6">
-
-                                @foreach($interests as $key => $interest)
-                                <input type="checkbox" name="interests[]" 
-                                value="{{$interest->id}}"   
-                                @if(isset($user["interest"][$key]["interest_id"]) && $user["interest"][$key]["interest_id"]==$interest->id)
-                                {{ 'checked' }}
-                                @endif>
-                                {{$interest->name}}
+                                <select name="type">                                  
+                                @foreach(Config('constants.types') as $key => $type)
+                                <option value="{{$type}}" @if($user->userDetail->type==$type) {{ 'selected'}} @endif>{{$type}}</option>
                                 @endforeach
+                                </select>
                             </div>
-
-                            @error('interests')
-                                    <span class="invalid-feedback" role="alert">
-                                        <strong>{{ $message }}</strong>
-                                    </span>
-                            @enderror
+                          
                         </div>
 
                         <div class="row mb-3">
-                            <label for="password-confirm" class="col-md-4 col-form-label text-md-end">Upload profile pic</label>
-                            <img src="{{ asset('/uploads/avatars/'.$user->profile_pic)}}" height="50px">
-                            <input type="hidden" name="profile_pic" value="{{$user['profile_pic']}}">
+                            <label for="amount" class="col-md-4 col-form-label text-md-end">
+                            Amount </label>
+
                             <div class="col-md-6">
-                                <input type="file" name="avatar">
+                                <input id="amount" type="text" class="form-control @error('amount') is-invalid @enderror" name="amount" value="{{ $user->userDetail->amount }}"  autocomplete="amount">
+
                             </div>
                         </div>
+
+                        <div class="row mb-3">
+                            <label for="date" class="col-md-4 col-form-label text-md-end">Date</label>
+
+                            <div class="col-md-6">
+                                <input id="date" type="date" class="form-control @error('date') is-invalid @enderror" name="date" value="{{ $user->userDetail->date }}"  autocomplete="date">
+                            </div>
+                        </div>
+
 
                         <div class="row mb-0">
                             <div class="col-md-6 offset-md-4">

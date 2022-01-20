@@ -4,12 +4,12 @@ namespace App\Http\Controllers;
  
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator; 
-use App\Models\Interest;
-use App\Models\UserInterest;
+use App\Models\UserDetail;
 use App\Models\User;
 use Datatables;
 use Image;
 use Illuminate\Support\Facades\Hash;
+
 class UserController extends Controller
 {
     /**
@@ -20,17 +20,25 @@ class UserController extends Controller
     public function index()
     {
         if(request()->ajax()) {
+
             return datatables()->of(User::select('*'))
             ->editColumn('created_at', function ($request) {
                 return $request->created_at->format('Y-m-d'); // human readable format
             })
-            ->editColumn('name', function ($request) {
-                return $request->first_name.' '.$request->last_name; // human readable format
+            ->editColumn('first_name', function ($request) {
+                return $request->first_name; // human readable format
             })
-            ->addColumn('interests', function (User $user) {
-                    return $user->interest->map(function($interest) {
-                        return $interest->name;
-                    })->implode(',');
+            ->editColumn('last_name', function ($request) {
+                return $request->last_name; // human readable format
+            })
+            ->addColumn('type', function (User $user) {
+                    return $user->userDetail->type;
+            })
+            ->addColumn('amount', function (User $user) {
+                    return $user->userDetail->currency.$user->userDetail->amount;
+            })
+            ->addColumn('date', function (User $user) {
+                    return $user->userDetail->date;
             })
             ->addColumn('action', 'user-action')
             ->rawColumns(['action'])
@@ -40,8 +48,7 @@ class UserController extends Controller
 
         }
         $title = "User";
-        $interests = Interest::all();
-        return view('user',compact('title','interests'));
+        return view('user',compact('title'));
     }
       
       
@@ -56,42 +63,27 @@ class UserController extends Controller
 
         $userId = $request->id;
         if(isset($userId) && $userId!=''){
-            $validator = Validator::make($request->all(), [
-                'first_name' => ['required', 'string', 'max:255'],
-                'last_name'  => ['required', 'string', 'max:255'],
-                'email'      => ['required', 'string', 'email', 'max:255', 'unique:users,email,'.$userId],
-                "interests"  =>  ['required',  'array','min:1'],
-            ]);
+            $emailValid = ['required', 'string', 'email', 'max:255', 'unique:users,email,'.$userId];
+            $passValid = "";
         }else{
-            $validator = Validator::make($request->all(), [
-                'first_name' => ['required', 'string', 'max:255'],
-                'last_name'  => ['required', 'string', 'max:255'],
-                'email'      => ['required', 'string', 'email', 'max:255', 'unique:users'],
-                'password'   =>  ['required', 'string', 'min:8', 'confirmed'],
-                "interests"  =>  ['required',  'array','min:1'],
-            ]);
+            $emailValid = ['required', 'string', 'email', 'max:255', 'unique:users'];  
+            $passValid = ['required', 'string', 'min:8', 'confirmed'];          
         }
         
+        $validator = Validator::make($request->all(), [
+                'first_name' => ['required', 'string', 'max:255'],
+                'last_name'  => ['required', 'string', 'max:255'],
+                'email'      =>  $emailValid,
+                'password'   =>  $passValid,
+                "type"       =>  ['required',  'in:Expense,Income'],
+                "amount"     =>  ['required',  'numeric'],
+                "date"       =>  ['required',  'date'],
+        ]);
 
         if ($validator->fails()) {
             return response()->json(['error'=>$validator->errors()->all()]);
         }
 
-
-
-        if($request->hasFile('avatar')){
-            $avatar = $request->file('avatar');
-            $filename = time() . '.' . $avatar->getClientOriginalExtension();
-            $save_path =  public_path('/uploads/avatars/');
-            if (!file_exists($save_path)) {
-                mkdir($save_path, 666, true);
-            }
-            Image::make($avatar)->resize(300, 300)->save($save_path.$filename);
-        }else{
-            $filename = $request->profile_pic;
-        }
-        
-        
 
         $user = User::updateOrCreate([
                      'id' => $userId
@@ -100,20 +92,21 @@ class UserController extends Controller
                         'first_name' => $request->first_name,
                         'last_name' => $request->last_name,
                         'email' => $request->email,
-                        'password' => Hash::make($request->password),
-                        'profile_pic' => $filename
+                        'password' => Hash::make($request->password)              
                     ]);
 
         $userId = $user->id;
 
-        foreach ($request->interests as $interest) {
-           $userInterest  = new UserInterest();
-           $userInterest->interest_id = $interest;
-           $userInterest->user_id = $userId;
-           $userInterest->save();
-        }
-   
-        $user = User::with('interest')->first();                 
+        $user = UserDetail::updateOrCreate([
+                     'user_id' => $userId
+                    ],
+                    [
+                        'type' => $request->type,
+                        'date' => date('Y-m-d',strtotime($request->date)),
+                        'amount' => $request->amount,
+                    ]);
+  
+        $user = User::with('userDetail')->first();                 
         return Response()->json($user);
  
     }
@@ -128,12 +121,8 @@ class UserController extends Controller
     public function edit(Request $request)
     {   
         $where = array('id' => $request->id);
-        $user  = User::with(['interest' => function($query){
-             $query->select('interest_id');
-        }])->where($where)->first();
-        
-        $interests = Interest::all();
-        $returnHTML = view('edit-user',compact('user','interests'))->render();
+        $user  = User::with('userDetail')->where($where)->first();   
+        $returnHTML = view('edit-user',compact('user'))->render();
         return response()->json(array('success' => true, 'html'=>$returnHTML));
     }
       

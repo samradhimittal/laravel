@@ -8,6 +8,7 @@ $ php artisan key:generate
 $ php artisan storage:link
 $ php artisan clearcaches
 $ php artisan cleanuploads
+$ php artisan db:seed
 $ php artisan droptables
 $ php artisan migrate
 

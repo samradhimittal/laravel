@@ -2,10 +2,8 @@
 
 return [
 
-    "interests" => [
-        1 => "Swimming",
-        2 => "Blogging or writing",
-        3 => "Dancing",
-        4 => "Cooking"
+    "types" => [
+        1 => "Expense",
+        2 => "Income"
     ]
 ];

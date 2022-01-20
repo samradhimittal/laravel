@@ -32,10 +32,12 @@
                <thead>
                   <tr>
                      <th>Id</th>
-                     <th>Name</th>
+                     <th>First Name</th>
+                     <th>Last Name</th>
                      <th>Email</th>
-                     <th>Profile Pic</th>
-                     <th>Interest</th>
+                     <th>Type</th>
+                     <th>Amount</th>
+                     <th>Date</th>
                      <th>Created At</th>
                      <th>Action</th>
                   </tr>
@@ -87,17 +89,13 @@
                   serverSide: true,
                   ajax: "{{ url('users') }}",
                      columns: [
-                        { data: 'id', name: 'id' },
-                        { data: 'name', name: 'name' },
-                        { data: 'email', name: 'name' },
-                        { 
-                           data: 'profile_pic', 
-                           name: 'profile_pic' ,
-                           render : function (data, type, full, meta) {        
-                              return '<img src="/uploads/avatars/' + data + '" height="50px"/>';    
-                           },     
-                        },
-                        { data: 'interests', name: 'interests' },
+                        { data: 'id', name: 'id' },                      
+                        { data: 'first_name', name: 'first_name' },
+                        { data: 'last_name', name: 'last_name' },
+                        { data: 'email', name: 'email' },
+                        { data: 'type', name: 'type' },
+                        { data: 'amount', name: 'amount' },
+                        { data: 'date', name: 'date' },
                         { data: 'created_at', name: 'created_at' },
                         {data: 'action', name: 'action', orderable: false},
                      ],
